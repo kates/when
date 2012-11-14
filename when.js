@@ -13,7 +13,9 @@
 (function(define) { 'use strict';
 define(['module'], function () {
 	var reduceArray, slice, undef;
-  if (typeof require !== 'undefined') {
+  if (typeof require === 'undefined') {
+    var apply = when_apply;
+  } else {
     var apply = require('./apply');
   }
 	//
@@ -76,6 +78,9 @@ define(['module'], function () {
 	 */
 	function resolve(promiseOrValue) {
 		var promise, deferred;
+		if (arguments.length > 1) {
+			promiseOrValue = [].slice.apply(arguments);
+		}
 
 		if(promiseOrValue instanceof Promise) {
 			// It's a when.js promise, so we trust it
@@ -110,24 +115,14 @@ define(['module'], function () {
 
 			} else {
 				// It's a value, not a promise.  Create a resolved promise for it.
-        if (promiseOrValue instanceof Array) {
-          //var promises = [];
-          /*
-          for (var i = 0; i < promiseOrValue.length; i++) {
-            //var d = defer();
-            //promises.push(d.resolve(promiseOrValue[i]));
-            if (isPromise(promiseOrValue[i])) {
-              return fulfilled(promiseOrValue);
-            }
-          }
-          */
-          promise = fulfilled(promiseOrValue);
-          if (!promise.nomultiargs) {
-            promise.multiargs = true;
-          }
-        } else {
+				if (promiseOrValue instanceof Array) {
+					promise = fulfilled(promiseOrValue);
+					if (!promise.nomultiargs) {
+						promise.multiargs = true;
+					}
+				} else {
 				  promise = fulfilled(promiseOrValue);
-        }
+				}
 			}
 		}
 
@@ -359,6 +354,9 @@ define(['module'], function () {
 		 * Wrapper to allow _resolve to be replaced
 		 */
 		function promiseResolve(val) {
+			if (arguments.length > 1) {
+				val = [].slice.apply(arguments);
+			}
 			return _resolve(val);
 		}
 
