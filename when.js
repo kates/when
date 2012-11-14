@@ -13,11 +13,13 @@
 (function(define) { 'use strict';
 define(['module'], function () {
 	var reduceArray, slice, undef;
-
+  if (typeof require !== 'undefined') {
+    var apply = require('./apply');
+  }
 	//
 	// Public API
 	//
-
+  when.Promise = Promise;
 	when.defer     = defer;     // Create a deferred
 	when.resolve   = resolve;   // Create a resolved promise
 	when.reject    = reject;    // Create a rejected promise
@@ -108,7 +110,24 @@ define(['module'], function () {
 
 			} else {
 				// It's a value, not a promise.  Create a resolved promise for it.
-				promise = fulfilled(promiseOrValue);
+        if (promiseOrValue instanceof Array) {
+          //var promises = [];
+          /*
+          for (var i = 0; i < promiseOrValue.length; i++) {
+            //var d = defer();
+            //promises.push(d.resolve(promiseOrValue[i]));
+            if (isPromise(promiseOrValue[i])) {
+              return fulfilled(promiseOrValue);
+            }
+          }
+          */
+          promise = fulfilled(promiseOrValue);
+          if (!promise.nomultiargs) {
+            promise.multiargs = true;
+          }
+        } else {
+				  promise = fulfilled(promiseOrValue);
+        }
 			}
 		}
 
@@ -278,7 +297,7 @@ define(['module'], function () {
 				: deferred.progress;
 
 			handlers.push(function(promise) {
-				promise.then(callback, errback)
+				promise.then(promise.multiargs ? apply(callback) : callback, errback)
 					.then(deferred.resolve, deferred.reject, progressHandler);
 			});
 
@@ -554,7 +573,7 @@ define(['module'], function () {
 				}
 
 			}
-
+      d.promise.nomultiargs = true;
 			return d.promise;
 
 		});
